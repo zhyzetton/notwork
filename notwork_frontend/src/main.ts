@@ -3,6 +3,7 @@ import './style.css'
 import 'remixicon/fonts/remixicon.css'
 import App from './App.vue'
 import router from './router'
+import 'md-editor-v3/lib/style.css';
 
 const app = createApp(App)
 app.use(router) // 注册路由

@@ -1,39 +1,57 @@
 <template>
-    <header class="bg-white h-15 flex items-center">
-        <div class="container mx-auto px-14 flex justify-between items-center">
-            <div class="flex items-center">
-                <img src="../../assets/logo.png" class="me-3 h-6 sm:h-9" alt="Flowbite Logo" />
-                <span class="self-center text-xl font-semibold whitespace-nowrap dark:text-white">Notwork</span>
-                <div class="flex gap-2 ml-6">
-                    <span @click="onClickNav(navData.url)" class="text-gray-500 cursor-pointer hover:text-blue-400" v-for="navData in navBarData">
-                        {{ navData.name }}
-                    </span>
-                </div>
-            </div>
-            <div>
-                <ElButton @click="openDialog" type="primary">登录</ElButton>
-                <Login :visible="loginVisible" @close="onClose" />
-            </div>
+  <header class="bg-white h-15 flex items-center">
+    <div class="container mx-auto px-14 flex justify-between items-center">
+      <div class="flex items-center">
+        <img
+          src="../../assets/logo.png"
+          class="me-3 h-6 sm:h-9"
+          alt="Flowbite Logo"
+        />
+        <span
+          class="self-center text-xl font-semibold whitespace-nowrap dark:text-white"
+          >Notwork</span
+        >
+        <div class="flex gap-2 ml-6">
+          <span
+            @click="onClickNav(navData.url)"
+            class=" cursor-pointer hover:text-blue-400"
+            v-for="navData in navBarData"
+            :class="{'text-blue-400': matchNav(navData.id),
+              'text-gray-500': !matchNav(navData.id)}"
+            :key="navData.url"
+          >
+          {{ navData.name }}
+          </span>
         </div>
-    </header>
-
+      </div>
+      <div>
+        <ElButton @click="openDialog" type="primary">登录</ElButton>
+        <Login :visible="loginVisible" @close="onClose" />
+      </div>
+    </div>
+  </header>
 </template>
 
 <script lang="ts" setup>
-import { ElButton } from 'element-plus';
-import Login from '../Login/index.vue';
-import { ref } from 'vue';
-import { navBarData } from './layoutData';
-import router from '@/router';
+import { ElButton } from "element-plus";
+import Login from "../Login/index.vue";
+import { ref } from "vue";
+import { navBarData } from "./layoutData";
+import router from "@/router";
+import { useRoute } from "vue-router";
 
-const loginVisible = ref(false)
+const route = useRoute()
+const loginVisible = ref(false);
 const openDialog = () => {
-    loginVisible.value = true
-}
+  loginVisible.value = true;
+};
 const onClose = (value: boolean) => {
-    loginVisible.value = value
-}
+  loginVisible.value = value;
+};
 const onClickNav = (url: string) => {
-    router.push(url)
+  router.push(url);
+};
+const matchNav = (id: string): boolean => {
+  return route.path.startsWith(`/${id}`)
 }
 </script>

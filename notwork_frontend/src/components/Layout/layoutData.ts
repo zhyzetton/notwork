@@ -1,27 +1,40 @@
 export const siderMenuData = [
     {
         icon: 'ri-home-2-line',
-        name: '关注',
-        url: '/'
+        name: '全部',
+        url: '/blog/all'
     },
     {
         icon: 'ri-home-2-line',
         name: '校园生活',
-        url: '/school'
+        url: '/blog/school'
+    },
+    {
+        icon: 'ri-home-2-line',
+        name: '代码技术',
+        url: '/blog/code'
+    },
+    {
+        icon: 'ri-home-2-line',
+        name: '课题研究',
+        url: '/blog/subject'
     }
 ]
 
 export const navBarData = [
     {
         name: '博客',
-        url: '/blog'
+        url: '/blog/all',
+        id: 'blog'
     },
     {
         name: '写博客',
-        url: '/write'
+        url: '/write',
+        id: 'write'
     },
     {
         name: '个人中心',
-        url: '/user'
+        url: '/user',
+        id: 'user'
     }
 ]
