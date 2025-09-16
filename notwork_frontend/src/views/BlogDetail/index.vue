@@ -1,6 +1,5 @@
 <template>
-  <div class="flex flex-col md:flex-row gap-8 p-4 max-w-7xl mx-auto">
-    <!-- 左侧大纲（无边框） -->
+  <div class="flex flex-col md:flex-row gap-8 p-4 max-w-7xl mx-auto min-h-[calc(100vh-100px)]">
     <div class="md:w-60 flex-shrink-0 sticky top-4 max-h-[calc(100vh-2rem)] overflow-y-auto hidden md:block p-4">
       <h3 class="text-lg font-semibold mb-4">大纲</h3>
       <!-- 大纲为空时显示提示 -->
@@ -13,7 +12,7 @@
             'hover:text-blue-500': true 
           }"
           :style="{ paddingLeft: `${(item.level - 1) * 16}px` }"
-          @click="scrollTo(item.id)"
+          @click="scrollTo(item.currentToken.attrs[1][1])"
           class="cursor-pointer py-1 transition-colors"
         >
           {{ item.text }}
@@ -27,7 +26,7 @@
       <MdPreview
         :md-heading-id="mdHeadingId"
         v-model="mdContent"
-        class="prose mx-auto px-2"
+        class="prose mx-auto px-4 max-w-none"
         @on-get-catalog="initOutline"
       />
     </div>
@@ -40,13 +39,10 @@ import { blogListDetail } from "./blogTempData";
 import { onMounted, ref, onUnmounted, nextTick } from "vue";
 import { useRoute } from "vue-router";
 
-// 核心变量
 const mdContent = ref("");
 const outlineList = ref([]); // 大纲数据
 const activeIndex = ref(-1);
-let scrollListener = null;
 
-// 加载文章内容
 const route = useRoute();
 onMounted(() => {
   const blog = blogListDetail.find(b => b.id == route.params.id);
@@ -56,7 +52,7 @@ onMounted(() => {
 const mdHeadingId = ({ index }) => `heading-${index}`;
 
 const initOutline = (headingList) => {
-  headingList.value = headingList
+  outlineList.value = headingList
 };
 
 // 点击大纲跳转
@@ -68,22 +64,4 @@ const scrollTo = (id) => {
   }
 };
 
-// 滚动时更新激活状态
-const handleScroll = () => {
-  if (outlineList.value.length === 0) return;
-
-  const scrollTop = window.scrollY + 100;
-  for (let i = outlineList.value.length - 1; i >= 0; i--) {
-    const rect = outlineList.value[i].element.getBoundingClientRect();
-    if (rect.top <= 100) {
-      activeIndex.value = i;
-      break;
-    }
-  }
-};
-
-// 清理事件
-onUnmounted(() => {
-  if (scrollListener) window.removeEventListener('scroll', scrollListener);
-});
 </script>

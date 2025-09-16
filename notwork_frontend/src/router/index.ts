@@ -25,6 +25,10 @@ const routes = [
       },
     ],
   },
+  {
+    path: '/:pathMatch(.*)*',
+    component: () => import("@/views/ErrorPages/NotFound.vue")
+  }
 ] as RouteRecordRaw[];
 const router = createRouter({
   history: createWebHistory(),
