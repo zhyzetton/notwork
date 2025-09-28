@@ -1,6 +1,8 @@
 import { createBrowserRouter } from 'react-router-dom'
 import Layout from '@/components/Layout/index'
 import BlogList from '@/pages/BlogList'
+import Editor from '@/components/Editor'
+import "vditor/dist/index.css";
 
 const router = createBrowserRouter([
   {
@@ -11,6 +13,10 @@ const router = createBrowserRouter([
         path: '/blogs/:tag',
         element: <BlogList />,
       },
+      {
+        path: '/write',
+        element: <Editor />
+      }
     ],
   },
 ])

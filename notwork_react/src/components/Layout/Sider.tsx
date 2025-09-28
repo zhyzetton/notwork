@@ -39,7 +39,7 @@ const Sider = ({ className }: SiderProps) => {
 
   return (
     <div className={cn('p-4 flex flex-col gap-2 w-64 bg-white rounded-lg', className)}>
-      <div className="font-bold text-xl text-blue-400">博客标签</div>
+      <div className="font-bold text-xl text-black">博客标签</div>
       <hr />
       {tempTag.map((tag) => (
         <div

@@ -15,8 +15,8 @@ const MenuLinkItem = ({ icon, title, link }: MenuLinkItem) => {
 const Logo = () => {
   return (
     <div>
-      <i className="ri-graduation-cap-line text-3xl text-blue-400"></i>
-      <span className="text-xl text-blue-400 font-bold ml-2">Notwork</span>
+      <i className="ri-graduation-cap-line text-3xl text-black"></i>
+      <span className="text-xl text-black font-bold ml-2">Notwork</span>
     </div>
   )
 }
