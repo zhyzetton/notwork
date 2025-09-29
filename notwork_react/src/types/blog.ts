@@ -1,4 +1,5 @@
 export interface BlogItemType {
+  id: string
   title: string
   imgUrl: string
   author: {
@@ -10,5 +11,5 @@ export interface BlogItemType {
   abstract: string
   views: number
   comments: number
-  likes: number
+  likes: number,
 }

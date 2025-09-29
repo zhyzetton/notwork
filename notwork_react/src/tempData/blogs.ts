@@ -2,6 +2,7 @@ import type { BlogItemType } from "@/types/blog";
 
 export const blogList: BlogItemType[] = [
     {
+        id: '13243',
         title: '数据科学实战：从数据收集到模型部署的完整流程',
         imgUrl: '',
         author: {
