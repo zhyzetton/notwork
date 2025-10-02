@@ -1,7 +1,10 @@
 import { cn } from '@/lib/utils'
 import { Button } from '../ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
-import type { MenuLinkItem } from '@/types/system'
+import type { MenuLinkItem, UserInfo } from '@/types/system'
+import LoginDialog from '../LoginDialog'
+import { useEffect, useState } from 'react'
+import { getLocalUserInfo, setLocalUserInfo } from '@/lib/localTool'
 
 const MenuLinkItem = ({ icon, title, link }: MenuLinkItem) => {
   return (
@@ -51,20 +54,37 @@ const MenuLink = () => {
 }
 
 const Login = () => {
+  const [userInfo, setUserInfo] = useState<UserInfo|null>(null)
+  const [dialogOpen, setDialogOpen] = useState<boolean>(false)
+
+  useEffect(() => {
+    const userInfo = getLocalUserInfo()
+    if(userInfo) setUserInfo(userInfo)
+  },[])
+
+  const onClose = (open: boolean) => {
+    setDialogOpen(open)
+  }
+  const loginSuccess = (userInfo: UserInfo) => {
+    setUserInfo(userInfo)
+    setLocalUserInfo(userInfo)
+  }
   return (
     <div className="flex gap-4">
       <Avatar>
-        <AvatarImage src="https://github.com/shadcn.png" />
+        <AvatarImage src={userInfo?.avatarUrl} />
         <AvatarFallback>User</AvatarFallback>
       </Avatar>
-      <Button>登录</Button>
+      {userInfo !=null && userInfo.username}
+      {userInfo == null && <Button onClick={() => setDialogOpen(true)}>登录</Button>}
+      <LoginDialog open={dialogOpen} onClose={onClose} onLoginSuccess={loginSuccess} />
     </div>
   )
 }
 
 const Header = () => {
   return (
-    <div className="flex items-center justify-between w-screen bg-white h-16 px-6">
+    <div className="sticky z-20 flex items-center justify-between w-screen bg-white h-16 px-6">
       <Logo />
       <MenuLink />
       <Login />
