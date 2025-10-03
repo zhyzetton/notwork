@@ -1,6 +1,6 @@
 package com.notwork.notwork_backend.service;
 
-import com.notwork.notwork_backend.entity.pojo.BlogTag;
+import com.notwork.notwork_backend.entity.BlogTag;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
@@ -9,7 +9,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * </p>
  *
  * @author zhyzetton
- * @since 2025-10-01
+ * @since 2025-10-03
  */
 public interface IBlogTagService extends IService<BlogTag> {
 

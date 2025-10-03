@@ -1,4 +1,4 @@
-package com.notwork.notwork_backend.entity.pojo;
+package com.notwork.notwork_backend.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -13,7 +13,7 @@ import lombok.Setter;
  * </p>
  *
  * @author zhyzetton
- * @since 2025-10-01
+ * @since 2025-10-03
  */
 @Getter
 @Setter
@@ -29,7 +29,12 @@ public class BlogTag implements Serializable {
     private Long id;
 
     /**
+     * 标签code
+     */
+    private String tagCode;
+
+    /**
      * 标签名称
      */
-    private String name;
+    private String tagName;
 }

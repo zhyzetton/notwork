@@ -1,6 +1,6 @@
 package com.notwork.notwork_backend.mapper;
 
-import com.notwork.notwork_backend.entity.pojo.BlogTag;
+import com.notwork.notwork_backend.entity.BlogTag;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -10,7 +10,7 @@ import org.apache.ibatis.annotations.Mapper;
  * </p>
  *
  * @author zhyzetton
- * @since 2025-10-01
+ * @since 2025-10-03
  */
 @Mapper
 public interface BlogTagMapper extends BaseMapper<BlogTag> {
