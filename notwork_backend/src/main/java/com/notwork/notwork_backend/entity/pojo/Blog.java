@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -83,5 +84,6 @@ public class Blog implements Serializable {
     /**
      * 最后更新时间
      */
+    @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
 }

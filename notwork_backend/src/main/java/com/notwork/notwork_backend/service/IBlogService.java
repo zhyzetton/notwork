@@ -1,8 +1,11 @@
 package com.notwork.notwork_backend.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.notwork.notwork_backend.entity.dto.BlogSearchDto;
 import com.notwork.notwork_backend.entity.dto.BlogSubmitDto;
 import com.notwork.notwork_backend.entity.pojo.Blog;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.notwork.notwork_backend.entity.vo.BlogSearchVo;
 
 /**
  * <p>
@@ -14,6 +17,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IBlogService extends IService<Blog> {
 
-    void insertBlog(BlogSubmitDto dto);
+    void insertBlogAndTag(BlogSubmitDto dto);
+
+    IPage<BlogSearchVo> getBlogList(BlogSearchDto dto);
 
 }

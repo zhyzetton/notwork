@@ -1,11 +1,21 @@
+import { getBlogListApi } from '@/api/blog'
 import BlogItem from '@/components/BlogItem'
 import Sider from '@/components/Layout/Sider'
-import { blogList } from '@/tempData/blogs'
+import router from '@/router'
+import type { BlogDetail } from '@/types/blog'
+import { useEffect, useState } from 'react'
 
 const BlogList = () => {
+  const [blogList, setBlogList] = useState<BlogDetail[]>([])
+  useEffect(() => {
+    getBlogListApi({pageNum: 1, pageSize: 10}).then((res) => {
+      setBlogList(res.data.records)
+    })
+  }, [])
 
-  const onClick = (id: string) => {
+  const onClick = (id: number) => {
     console.log('item id: ', id)
+    router.navigate(`/blogs/detail/${id}`)
   }
   
   return (

@@ -84,7 +84,7 @@ const Login = () => {
 
 const Header = () => {
   return (
-    <div className="sticky z-20 flex items-center justify-between w-screen bg-white h-16 px-6">
+    <div className="sticky z-20 flex items-center justify-between w-full bg-white h-16 px-6 top-0">
       <Logo />
       <MenuLink />
       <Login />

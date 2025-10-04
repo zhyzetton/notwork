@@ -3,6 +3,7 @@ import Layout from '@/components/Layout/index'
 import BlogList from '@/pages/BlogList'
 import Editor from '@/components/Editor'
 import "vditor/dist/index.css";
+import BlogDetail from '@/pages/BlogDetail';
 
 const router = createBrowserRouter([
   {
@@ -12,6 +13,10 @@ const router = createBrowserRouter([
       {
         path: '/blogs/:tag',
         element: <BlogList />,
+      },
+      {
+        path: '/blogs/detail/:id',
+        element: <BlogDetail />
       },
       {
         path: '/write',

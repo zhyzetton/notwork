@@ -1,15 +1,49 @@
-export interface BlogItemType {
+export interface Tag {
   id: string
+  tagCode: string
+  tagName: string
+}
+
+export interface SubmitBlogParams {
+  userId: string
   title: string
-  imgUrl: string
-  author: {
-    name: string
-    avatarUrl: string
-  }
-  tag: string
-  date: string
-  abstract: string
-  views: number
-  comments: number
-  likes: number,
+  contentMarkdown: string
+  coverUrl?: string
+  status?: number
+  tagId: number
+}
+
+export interface Page<T> {
+  records: T[]
+  total: number
+  size: number
+  currnet: number
+  pages: number
+}
+
+export interface BlogSearchParams {
+  pageNum: number
+  pageSize: number
+  title?: string
+  tagId?: number
+  userId?: number
+  status?: number
+}
+
+export interface BlogDetail {
+  id: number
+  title: string
+  contentHtml: string
+  contentMarkdown: string
+  coverUrl: string
+  status: number
+  viewCount: number
+  likeCount: number
+  collectCount: number
+  createTime: string
+  updateTime: string
+  userId: number
+  username: string
+  userAvatar: string
+  tagName: string
 }

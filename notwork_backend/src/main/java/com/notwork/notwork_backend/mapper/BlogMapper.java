@@ -1,8 +1,13 @@
 package com.notwork.notwork_backend.mapper;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.notwork.notwork_backend.entity.dto.BlogSearchDto;
 import com.notwork.notwork_backend.entity.pojo.Blog;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.notwork.notwork_backend.entity.vo.BlogSearchVo;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 /**
  * <p>
@@ -14,5 +19,7 @@ import org.apache.ibatis.annotations.Mapper;
  */
 @Mapper
 public interface BlogMapper extends BaseMapper<Blog> {
+
+    IPage<BlogSearchVo> searchBlog(Page<?> page, @Param("dto") BlogSearchDto dto);
 
 }
