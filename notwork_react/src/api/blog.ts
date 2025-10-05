@@ -31,3 +31,15 @@ export const getBlogByIdApi = (id: number): Promise<BaseRes<BlogDetail>> => {
         method: "GET"
     })
 }
+
+export const esSearchBlogApi = (keyword: string, page: number, pageSize: number): Promise<BaseRes<BlogDetail[]>> => {
+    return request({
+        url: '/blog/es',
+        method: "GET",
+        params: {
+            keyword,
+            page,
+            pageSize
+        }
+    })
+}

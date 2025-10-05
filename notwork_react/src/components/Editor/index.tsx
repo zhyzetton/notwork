@@ -96,7 +96,7 @@ const Editor = () => {
         <Button variant={'outline'}>草稿箱</Button>
         <Button onClick={onClickSubmit}>发布</Button>
       </div>
-      <div id="vditor" className="vditor mt-4" />
+      <div id="vditor" className="vditor mt-4 min-h-[calc(100vh-150px)]" />
     </div>
   )
 }

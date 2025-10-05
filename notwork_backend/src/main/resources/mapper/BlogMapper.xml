@@ -6,8 +6,6 @@
         SELECT DISTINCT
             b.id,
             b.title,
-            b.content_html,
-            b.content_markdown,
             b.cover_url,
             b.status,
             b.view_count,
@@ -29,6 +27,9 @@
             </if>
             <if test="dto.tagId != null">
                 AND r.tag_id = #{dto.tagId}
+            </if>
+            <if test="dto.tagCode != null">
+                AND t.tag_code = #{dto.tagCode}
             </if>
             <if test="dto.status != null">
                 AND b.status = #{dto.status}

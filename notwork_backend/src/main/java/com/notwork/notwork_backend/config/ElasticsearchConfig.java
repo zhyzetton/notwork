@@ -1,0 +1,26 @@
+package com.notwork.notwork_backend.config;
+
+import org.apache.http.HttpHost;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class ElasticsearchConfig {
+
+    @Value("${spring.elasticsearch.ip}")
+    private String ip;
+    @Value("${spring.elasticsearch.port}")
+    private Integer port;
+    @Value("${spring.elasticsearch.scheme}")
+    private String scheme;
+
+    @Bean
+    public RestHighLevelClient restHighLevelClient() {
+        return new RestHighLevelClient(
+                RestClient.builder(new HttpHost(ip, port, scheme))
+        );
+    }
+}

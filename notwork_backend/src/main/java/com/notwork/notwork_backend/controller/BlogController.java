@@ -7,10 +7,15 @@ import com.notwork.notwork_backend.entity.dto.BlogSubmitDto;
 import com.notwork.notwork_backend.entity.pojo.Blog;
 import com.notwork.notwork_backend.entity.vo.BlogSearchVo;
 import com.notwork.notwork_backend.service.IBlogService;
+import com.notwork.notwork_backend.utils.EsTool;
 import com.notwork.notwork_backend.utils.Result;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -26,6 +31,7 @@ import org.springframework.web.bind.annotation.*;
 public class BlogController {
 
     private final IBlogService blogService;
+    private final EsTool esTool;
 
     @GetMapping
     public Result getBlogs(BlogSearchDto dto) {
@@ -42,8 +48,14 @@ public class BlogController {
     }
 
     @PostMapping
-    public Result insertBlog(@RequestBody BlogSubmitDto dto) {
+    public Result insertBlog(@RequestBody BlogSubmitDto dto) throws IOException {
         blogService.insertBlogAndTag(dto);
         return Result.success();
+    }
+
+    @GetMapping("/es")
+    public Result esSearchBlog(String keyword, Integer page, Integer pageSize) throws IOException {
+        List<Map<String, Object>> maps = esTool.esSearchBlogWithHighlight(keyword, page, pageSize);
+        return Result.success(maps);
     }
 }

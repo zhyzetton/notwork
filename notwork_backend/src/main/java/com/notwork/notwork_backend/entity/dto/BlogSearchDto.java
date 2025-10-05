@@ -8,6 +8,7 @@ public class BlogSearchDto {
     private Integer pageSize;
     private String title;
     private Long tagId;
+    private String tagCode;
     private Long userId;
     private Byte status;
 }

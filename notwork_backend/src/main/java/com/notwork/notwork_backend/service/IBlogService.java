@@ -7,6 +7,8 @@ import com.notwork.notwork_backend.entity.pojo.Blog;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.notwork.notwork_backend.entity.vo.BlogSearchVo;
 
+import java.io.IOException;
+
 /**
  * <p>
  * 博客表 服务类
@@ -17,7 +19,7 @@ import com.notwork.notwork_backend.entity.vo.BlogSearchVo;
  */
 public interface IBlogService extends IService<Blog> {
 
-    void insertBlogAndTag(BlogSubmitDto dto);
+    void insertBlogAndTag(BlogSubmitDto dto) throws IOException;
 
     IPage<BlogSearchVo> getBlogList(BlogSearchDto dto);
 

@@ -26,6 +26,7 @@ export interface BlogSearchParams {
   pageSize: number
   title?: string
   tagId?: number
+  tagCode?: string
   userId?: number
   status?: number
 }
@@ -35,6 +36,7 @@ export interface BlogDetail {
   title: string
   contentHtml: string
   contentMarkdown: string
+  contentMarkdown_highlight?: string
   coverUrl: string
   status: number
   viewCount: number

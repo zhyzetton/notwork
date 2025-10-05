@@ -11,12 +11,20 @@ import com.notwork.notwork_backend.mapper.BlogMapper;
 import com.notwork.notwork_backend.service.IBlogService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.notwork.notwork_backend.service.IBlogTagRelationService;
+import com.notwork.notwork_backend.utils.EsTool;
 import lombok.RequiredArgsConstructor;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import javax.naming.directory.SearchResult;
+import java.io.IOException;
+import java.util.List;
 
 /**
  * <p>
@@ -32,11 +40,11 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
 
     private final IBlogTagRelationService blogTagRelationService;
     private final BlogMapper blogMapper;
-
+    private final EsTool esTool;
 
     @Override
     @Transactional
-    public void insertBlogAndTag(BlogSubmitDto dto) {
+    public void insertBlogAndTag(BlogSubmitDto dto) throws IOException {
         Blog blog = new Blog();
         BeanUtils.copyProperties(dto, blog);
         save(blog);
@@ -44,6 +52,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         blogTagRelation.setBlogId(blog.getId());
         blogTagRelation.setTagId(dto.getTagId());
         blogTagRelationService.save(blogTagRelation);
+        esTool.saveBlogToEs(blog, dto.getTagId());
     }
 
     @Override
@@ -51,4 +60,6 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         Page<Object> page = new Page<>(dto.getPageNum(), dto.getPageSize());
         return blogMapper.searchBlog(page, dto);
     }
+
+
 }

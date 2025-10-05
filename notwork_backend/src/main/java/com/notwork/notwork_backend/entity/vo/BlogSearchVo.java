@@ -9,8 +9,6 @@ public class BlogSearchVo {
 
     private Long id;
     private String title;
-    private String contentHtml;
-    private String contentMarkdown;
     private String coverUrl;
     private Byte status;
     private Integer viewCount;
