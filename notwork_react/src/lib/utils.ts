@@ -8,7 +8,7 @@ export function cn(...inputs: ClassValue[]) {
 
 export const request = axios.create({
   baseURL: `${import.meta.env.VITE_API_URL}`,
-  timeout: 5000,
+  timeout: 60000,
 })
 // 请求拦截器
 request.interceptors.request.use((config) => {

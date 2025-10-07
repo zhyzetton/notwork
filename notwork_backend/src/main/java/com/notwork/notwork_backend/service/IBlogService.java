@@ -23,4 +23,6 @@ public interface IBlogService extends IService<Blog> {
 
     IPage<BlogSearchVo> getBlogList(BlogSearchDto dto);
 
+    String chatWithRag(String userId, String query);
+
 }

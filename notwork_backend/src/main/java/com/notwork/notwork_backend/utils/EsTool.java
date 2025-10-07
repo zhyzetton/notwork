@@ -1,85 +1,110 @@
 package com.notwork.notwork_backend.utils;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders;
+import co.elastic.clients.elasticsearch._types.query_dsl.MultiMatchQuery;
+import co.elastic.clients.elasticsearch.core.IndexRequest;
+import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.core.search.Highlight;
+import co.elastic.clients.elasticsearch.core.search.Hit;
 import com.notwork.notwork_backend.entity.pojo.Blog;
 import lombok.RequiredArgsConstructor;
-import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.common.text.Text;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
-import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 import org.springframework.stereotype.Component;
+
 import java.io.IOException;
 import java.util.*;
 
-
+/**
+ * 简单的 Elasticsearch 工具类
+ * - 保存 Blog 文档
+ * - 按关键词搜索并高亮
+ */
 @RequiredArgsConstructor
 @Component
 public class EsTool {
-    private final RestHighLevelClient restHighLevelClient;
 
+    private final ElasticsearchClient elasticsearchClient;
+
+    /**
+     * 保存博客到 Elasticsearch
+     */
     public void saveBlogToEs(Blog blog, Long tagId) throws IOException {
-        Map<String, Object> map = new HashMap<>();
-        map.put("id", blog.getId());
-        map.put("userId", blog.getUserId());
-        map.put("title", blog.getTitle());
-        map.put("contentMarkdown", blog.getContentMarkdown());
-        map.put("tagId", tagId);
-        map.put("createTime", blog.getCreateTime());
-        map.put("updateTime", blog.getUpdateTime());
-        IndexRequest request = new IndexRequest("blog_index")
-                .id(blog.getId().toString())
-                .source(map);
-        restHighLevelClient.index(request, RequestOptions.DEFAULT);
+        Map<String, Object> blogData = new HashMap<>();
+        blogData.put("id", blog.getId());
+        blogData.put("userId", blog.getUserId());
+        blogData.put("title", blog.getTitle());
+        blogData.put("contentMarkdown", blog.getContentMarkdown());
+        blogData.put("tagId", tagId);
+        blogData.put("createTime", blog.getCreateTime() == null ? null : blog.getCreateTime().toString());
+        blogData.put("updateTime", blog.getUpdateTime() == null ? null : blog.getUpdateTime().toString());
+
+        IndexRequest<Map<String, Object>> request = IndexRequest.of(r -> r
+                .index("blog_index") // 索引名称
+                .id(String.valueOf(blog.getId())) // 文档 ID
+                .document(blogData)
+        );
+
+        elasticsearchClient.index(request);
     }
 
+    /**
+     * 带高亮的博客搜索
+     */
     public List<Map<String, Object>> esSearchBlogWithHighlight(String keyword, int page, int size) throws IOException {
-        SearchRequest searchRequest = new SearchRequest("blog_index");
-        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+        // 高亮配置
+        Highlight highlightConfig = Highlight.of(h -> h
+                .fields("title", f -> f
+                        .preTags("<span style=\"background-color: #fde68a\">")
+                        .postTags("</span>")
+                        .fragmentSize(150)
+                        .numberOfFragments(1)
+                )
+                .fields("contentMarkdown", f -> f
+                        .preTags("<span style=\"background-color: #fde68a\">")
+                        .postTags("</span>")
+                        .fragmentSize(150)
+                        .numberOfFragments(1)
+                )
+        );
 
-        // 多字段匹配
-        sourceBuilder.query(QueryBuilders.multiMatchQuery(keyword, "title", "contentMarkdown"));
-        sourceBuilder.from((page - 1) * size);
-        sourceBuilder.size(size);
+        // 多字段匹配查询
+        MultiMatchQuery query = QueryBuilders.multiMatch()
+                .query(keyword)
+                .fields("title^2", "contentMarkdown")
+                .build();
 
-        // 高亮设置
-        HighlightBuilder highlightBuilder = new HighlightBuilder();
-        highlightBuilder.field("title");
-        highlightBuilder.field("contentMarkdown");
-        highlightBuilder.preTags("<span style=\"background-color: #fde68a\">");
-        highlightBuilder.postTags("</span>");
-        highlightBuilder.fragmentSize(150); // 上下文长度
-        highlightBuilder.numOfFragments(1);
-        sourceBuilder.highlighter(highlightBuilder);
+        // 搜索请求
+        SearchRequest request = SearchRequest.of(s -> s
+                .index("blog_index")
+                .query(q -> q.multiMatch(query))
+                .from((page - 1) * size)
+                .size(size)
+                .highlight(highlightConfig)
+        );
 
-        searchRequest.source(sourceBuilder);
+        // 执行搜索（注意：第二个参数用 Map.class）
+        SearchResponse<Map> response = elasticsearchClient.search(request, Map.class);
 
-        SearchResponse response = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
-        List<Map<String, Object>> result = new ArrayList<>();
+        // 解析结果
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        for (Hit<Map> hit : response.hits().hits()) {
+            Map<String, Object> source = hit.source();
+            if (source == null) continue;
 
-        for (SearchHit hit : response.getHits().getHits()) {
-            Map<String, Object> source = hit.getSourceAsMap();
-            Map<String, Object> blogMap = new HashMap<>(source);
+            Map<String, Object> result = new HashMap<>(source);
 
             // 处理高亮
-            Map<String, HighlightField> highlightFields = hit.getHighlightFields();
-            highlightFields.forEach((field, highlight) -> {
-                String fragment = String.join("...",
-                        Arrays.stream(highlight.fragments())
-                                .map(Text::toString)
-                                .toArray(String[]::new)
-                );
-                blogMap.put(field + "_highlight", fragment);
-            });
+            if (hit.highlight() != null) {
+                hit.highlight().forEach((field, fragments) -> {
+                    String highlightText = String.join("", fragments);
+                    result.put(field + "_highlight", highlightText);
+                });
+            }
 
-            result.add(blogMap);
+            resultList.add(result);
         }
 
-        return result;
+        return resultList;
     }
 }

@@ -43,3 +43,14 @@ export const esSearchBlogApi = (keyword: string, page: number, pageSize: number)
         }
     })
 }
+
+export const chatWithRagApi = (userId: number, query: string): Promise<BaseRes<string>> => {
+    return request({
+        url: '/blog/chatRag',
+        method: "POST",
+        data: {
+            userId,
+            query
+        }
+    })
+}

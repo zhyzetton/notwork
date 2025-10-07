@@ -1,13 +1,9 @@
-import React, { Suspense } from 'react'
+import React from 'react'
 import { RouterProvider } from 'react-router-dom'
 import router from './router'
 
 const App: React.FC = () => {
-  return (
-    <Suspense fallback={<>Loading...</>}>
-      <RouterProvider router={router} />
-    </Suspense>
-  )
+  return <RouterProvider router={router} />
 }
 
 export default App

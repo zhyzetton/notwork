@@ -20,8 +20,8 @@ public class Result {
     }
 
     // 成功场景：无数据，只有消息
-    public static Result success(String msg) {
-        return new Result(200, msg, null);
+    public static Result success(Integer code, Object data) {
+        return new Result(code, "操作成功", data);
     }
 
     // 成功场景：无数据无消息（默认消息）

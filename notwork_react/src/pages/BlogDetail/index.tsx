@@ -9,7 +9,7 @@ const BlogDetail = () => {
 
     useEffect(() => {
         getBlogByIdApi(Number.parseInt(id!)).then((res) => {
-            setContent(res.data.contentHtml)
+            setContent(res.data.contentMarkdown)
         })
     }, [id])
 

@@ -37,6 +37,11 @@ const MenuLink = () => {
       link: '/write',
     },
     {
+      icon: 'ri-chat-ai-line',
+      title: '知识库问答',
+      link: '/ragchat'
+    },
+    {
       icon: 'ri-user-line',
       title: '个人中心',
       link: '/user',

@@ -85,7 +85,7 @@ const Editor = () => {
         <Input placeholder="请输入标题" onChange={(e) => setTitle(e.target.value)} />
         <Select onValueChange={(value) => setTagId(Number.parseInt(value))}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Select a fruit" />
+            <SelectValue placeholder="选择标签" />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>

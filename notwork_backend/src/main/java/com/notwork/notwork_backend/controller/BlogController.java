@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.notwork.notwork_backend.entity.dto.BlogSearchDto;
 import com.notwork.notwork_backend.entity.dto.BlogSubmitDto;
+import com.notwork.notwork_backend.entity.dto.ChatWithRagDto;
 import com.notwork.notwork_backend.entity.pojo.Blog;
 import com.notwork.notwork_backend.entity.vo.BlogSearchVo;
 import com.notwork.notwork_backend.service.IBlogService;
@@ -57,5 +58,10 @@ public class BlogController {
     public Result esSearchBlog(String keyword, Integer page, Integer pageSize) throws IOException {
         List<Map<String, Object>> maps = esTool.esSearchBlogWithHighlight(keyword, page, pageSize);
         return Result.success(maps);
+    }
+    @PostMapping("/chatRag")
+    public Result chatWithRag(@RequestBody ChatWithRagDto dto) {
+        String result = blogService.chatWithRag(dto.getUserId(), dto.getQuery());
+        return Result.success(200, result);
     }
 }
