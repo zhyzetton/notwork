@@ -1,17 +1,18 @@
-import { cn } from '@/lib/utils'
 import { Button } from '../ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
 import type { MenuLinkItem, UserInfo } from '@/types/system'
 import LoginDialog from '../LoginDialog'
 import { useEffect, useState } from 'react'
 import { getLocalUserInfo, setLocalUserInfo } from '@/lib/localTool'
+import { Link } from 'react-router-dom'
 
 const MenuLinkItem = ({ icon, title, link }: MenuLinkItem) => {
+  
   return (
-    <a href={link} className={cn('flex px-2 gap-1')}>
+    <Link to={link} className={'flex px-2 gap-1 cursor-pointer'}>
       <i className={icon}></i>
       <span>{title}</span>
-    </a>
+    </Link>
   )
 }
 

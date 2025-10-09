@@ -5,7 +5,6 @@ import Editor from '@/components/Editor'
 import "vditor/dist/index.css";
 import BlogDetail from '@/pages/BlogDetail';
 import ChatPage from '@/pages/ChatPage';
-import KeepAlive from 'react-activation'
 
 const router = createBrowserRouter([
   {
@@ -14,19 +13,19 @@ const router = createBrowserRouter([
     children: [
       {
         path: '/blogs/:tag',
-        element: <KeepAlive name='blog-list' children={<BlogList />} />,
+        element: <BlogList />
       },
       {
         path: '/blogs/detail/:id',
-        element: <KeepAlive name='blog-detail' children={<BlogDetail />} />
+        element: <BlogDetail />
       },
       {
         path: '/ragChat',
-        element: <KeepAlive name='chat-page' children={<ChatPage />} />
+        element: <ChatPage />
       },
       {
         path: '/write',
-        element: <KeepAlive name='blog-write' children={<Editor />} />
+        element: <Editor />
       }
     ],
   },
