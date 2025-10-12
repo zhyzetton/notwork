@@ -22,9 +22,18 @@ function ChatPage() {
 
     try {
       const userId = getLocalUserInfo()!.id
-      const response = await chatWithRagApi(Number.parseInt(userId), userQuery)
-
-      setAiResponse(response.data)
+      // const response = await chatWithRagApi(Number.parseInt(userId), userQuery)
+      // setAiResponse(response.data)
+      const eventSource = new EventSource(`http://localhost:8080/api/chat?query=${userQuery}&userId=${userId}`)
+      eventSource.onmessage = (event) => {
+        const data = event.data
+        
+        setAiResponse(prev => prev + data)
+      }
+      eventSource.onerror = (error) => {
+        console.log(error)
+        eventSource.close()
+      }
     } catch (err) {
       console.error('Error fetching AI response:', err)
     } finally {

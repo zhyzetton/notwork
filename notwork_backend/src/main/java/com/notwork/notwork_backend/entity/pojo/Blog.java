@@ -41,6 +41,11 @@ public class Blog implements Serializable {
     private String title;
 
     /**
+     * 博客摘要
+     */
+    private String summary;
+
+    /**
      * Markdown 原文
      */
     private String contentMarkdown;

@@ -16,8 +16,8 @@ public class XinferenceClient {
     private final RestClient restClient;
     private final ObjectMapper objectMapper; // 用于手动序列化/反序列化 JSON
 
-    @Value("${spring.ai.openai.base-url}") // 沿用你application-dev.yml中的base-url
-    private String baseUrl;
+//    @Value("${spring.ai.openai.base-url}") // 沿用你application-dev.yml中的base-url
+    private String baseUrl = "http://10.0.33.13:9997/v1";
 
 //    @Value("${spring.ai.embedding.options.model}") // 沿用你application-dev.yml中的model
     private String embeddingModelName = "bge-large-zh-v1.5";

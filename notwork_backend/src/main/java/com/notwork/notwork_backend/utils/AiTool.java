@@ -1,21 +1,21 @@
 package com.notwork.notwork_backend.utils;
 
+import com.alibaba.cloud.ai.dashscope.embedding.DashScopeEmbeddingOptions;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.notwork.notwork_backend.entity.pojo.Blog;
 import io.milvus.v2.service.vector.response.SearchResp;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.embedding.EmbeddingModel;
+import org.springframework.ai.embedding.EmbeddingRequest;
+import org.springframework.ai.embedding.EmbeddingResponse;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-
 import java.util.*;
 import java.util.stream.Collectors;
-import org.springframework.web.client.RestClient;
 
 
 @RequiredArgsConstructor
@@ -27,12 +27,11 @@ public class AiTool {
 //    private final ChatClient chatClient;
     private final MilvusTool milvusTool;
     private final XinferenceClient xinferenceClient;
-    private final RestClient restClient;
-    private final ObjectMapper objectMapper;
-    @Value("${spring.ai.openai.base-url}")
-    private String uri;
-    @Value("${spring.ai.openai.chat.options.model}")
-    private String model;
+//    private final EmbeddingModel embeddingModel;
+//
+//    public EmbeddingResponse text2embed(String text) {
+//        return embeddingModel.call(new EmbeddingRequest(List.of(text), null));
+//    }
 
     public String chatWithRag(List<Long> blogIdList, String userQuery) {
         // Mock milvusTool if not actually injected
@@ -58,61 +57,7 @@ public class AiTool {
         2. 若上下文没有相关内容，按照你自己的知识回答。
         """, context, userQuery);
 
-        // Prepare request body
-        Map<String, Object> requestBody = new HashMap<>();
-        List<Map<String, String>> messages = new ArrayList<>();
-
-        Map<String, String> messageUser = new HashMap<>();
-        messageUser.put("role", "user");
-        messageUser.put("content", promptText);
-        messages.add(messageUser);
-
-        // System message first, then user message as per OpenAI API common practice (though order might not strictly matter for some models)
-        // If your model prefers system message at the beginning of the list, keep it like this.
-        Map<String, String> messageSystem = new HashMap<>();
-        messageSystem.put("role", "system");
-        messageSystem.put("content", "你是一个实验室博客助手");
-        messages.add(0, messageSystem); // Add system message at the beginning
-
-        requestBody.put("messages", messages);
-        requestBody.put("model", model);
-
-        String responseBody = restClient.post()
-                .uri(uri + "/chat/completions")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(requestBody)
-                .retrieve()
-                .body(String.class);
-
-        try {
-            // Use Gson to parse the JSON string
-            JsonObject jsonResponse = JsonParser.parseString(responseBody).getAsJsonObject(); // Use JsonParser for parsing
-
-            // Safely get the 'choices' array
-            JsonArray choicesArray = jsonResponse.getAsJsonArray("choices");
-
-            if (choicesArray == null || choicesArray.isEmpty()) {
-                return "未从LLM获取到有效响应内容。";
-            }
-
-            List<String> contents = new ArrayList<>();
-            for (JsonElement choiceElement : choicesArray) {
-                JsonObject choiceObject = choiceElement.getAsJsonObject();
-                if (choiceObject.has("message")) {
-                    JsonObject messageObject = choiceObject.getAsJsonObject("message");
-                    if (messageObject.has("content")) {
-                        contents.add(messageObject.get("content").getAsString());
-                    }
-                }
-            }
-            return String.join("\n", contents);
-
-        } catch (Exception e) {
-            // Log the exception for debugging
-            System.err.println("Error parsing LLM response: " + e.getMessage());
-            System.err.println("Response body: " + responseBody); // Log the problematic response body
-            throw new RuntimeException("Failed to parse LLM response.", e);
-        }
+        return null;
     }
 
     public void chunkAndUpload(Blog blog) {
