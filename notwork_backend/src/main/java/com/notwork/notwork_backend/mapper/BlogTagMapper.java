@@ -1,6 +1,6 @@
 package com.notwork.notwork_backend.mapper;
 
-import com.notwork.notwork_backend.entity.BlogTag;
+import com.notwork.notwork_backend.entity.pojo.BlogTag;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 

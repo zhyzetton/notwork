@@ -9,11 +9,11 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class MilvusConfig {
 
-    @Value("${spring.ai.vectorstore.milvus.client.uri}")
-    private String uri;
+//    @Value("${spring.ai.vectorstore.milvus.client.uri}")
+    private String uri = "http://10.0.33.13:19530";
 
-    @Value("${spring.ai.vectorstore.milvus.client.token}")
-    private String token;
+//    @Value("${spring.ai.vectorstore.milvus.client.token}")
+    private String token = "root:Milvus";
 
     @Bean
     public MilvusClientV2 getMilvusClientV2() {

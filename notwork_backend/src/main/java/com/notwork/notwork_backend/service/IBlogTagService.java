@@ -1,6 +1,6 @@
 package com.notwork.notwork_backend.service;
 
-import com.notwork.notwork_backend.entity.BlogTag;
+import com.notwork.notwork_backend.entity.pojo.BlogTag;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**

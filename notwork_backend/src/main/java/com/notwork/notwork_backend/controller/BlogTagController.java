@@ -1,6 +1,6 @@
 package com.notwork.notwork_backend.controller;
 
-import com.notwork.notwork_backend.entity.BlogTag;
+import com.notwork.notwork_backend.entity.pojo.BlogTag;
 import com.notwork.notwork_backend.service.IBlogTagService;
 import com.notwork.notwork_backend.utils.Result;
 import lombok.RequiredArgsConstructor;

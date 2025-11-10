@@ -5,9 +5,9 @@ import LoginDialog from '../LoginDialog'
 import { useEffect, useState } from 'react'
 import { getLocalUserInfo, setLocalUserInfo } from '@/lib/localTool'
 import { Link } from 'react-router-dom'
+import { cn } from '@/lib/utils'
 
 const MenuLinkItem = ({ icon, title, link }: MenuLinkItem) => {
-  
   return (
     <Link to={link} className={'flex px-2 gap-1 cursor-pointer'}>
       <i className={icon}></i>
@@ -40,7 +40,7 @@ const MenuLink = () => {
     {
       icon: 'ri-chat-ai-line',
       title: '知识库问答',
-      link: '/ragchat'
+      link: '/ragchat',
     },
     {
       icon: 'ri-user-line',
@@ -60,13 +60,13 @@ const MenuLink = () => {
 }
 
 const Login = () => {
-  const [userInfo, setUserInfo] = useState<UserInfo|null>(null)
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null)
   const [dialogOpen, setDialogOpen] = useState<boolean>(false)
 
   useEffect(() => {
     const userInfo = getLocalUserInfo()
-    if(userInfo) setUserInfo(userInfo)
-  },[])
+    if (userInfo) setUserInfo(userInfo)
+  }, [])
 
   const onClose = (open: boolean) => {
     setDialogOpen(open)
@@ -81,16 +81,24 @@ const Login = () => {
         <AvatarImage src={userInfo?.avatarUrl} />
         <AvatarFallback>User</AvatarFallback>
       </Avatar>
-      {userInfo !=null && userInfo.username}
+      {userInfo != null && userInfo.username}
       {userInfo == null && <Button onClick={() => setDialogOpen(true)}>登录</Button>}
       <LoginDialog open={dialogOpen} onClose={onClose} onLoginSuccess={loginSuccess} />
     </div>
   )
 }
 
-const Header = () => {
+interface HeaderProps {
+  className?: string
+}
+const Header = ({ className }: HeaderProps) => {
   return (
-    <div className="sticky z-20 flex items-center justify-between w-full bg-white h-16 px-6 top-0">
+    <div
+      className={cn(
+        'sticky z-20 flex items-center justify-between w-full bg-white h-16 px-6 top-0',
+        className
+      )}
+    >
       <Logo />
       <MenuLink />
       <Login />

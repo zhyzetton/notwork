@@ -1,6 +1,7 @@
 package com.notwork.notwork_backend.utils;
 
 import com.google.gson.JsonObject;
+import com.notwork.notwork_backend.entity.dto.EmbeddingRes;
 import io.milvus.v2.client.MilvusClientV2;
 import io.milvus.v2.service.collection.request.LoadCollectionReq;
 import io.milvus.v2.service.vector.request.InsertReq;
@@ -8,12 +9,15 @@ import io.milvus.v2.service.vector.request.SearchReq;
 import io.milvus.v2.service.vector.request.data.FloatVec;
 import io.milvus.v2.service.vector.response.SearchResp;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RequiredArgsConstructor
 @Component
 public class MilvusTool {
@@ -22,7 +26,7 @@ public class MilvusTool {
     private String collectionName;
 
     private final MilvusClientV2 milvusClient;
-    private final XinferenceClient xinferenceClient;
+    private final AiTool aiTool;
 
     public void insert(List<JsonObject> data) {
         InsertReq insertReq = InsertReq.builder()
@@ -33,38 +37,52 @@ public class MilvusTool {
     }
 
     public List<List<SearchResp.SearchResult>> searchOnPersonal(List<Long> blogIdList, String query) {
-
-        // 使用自定义的HTTP客户端获取查询的embeddings
-        List<List<Double>> queryEmbeddings = xinferenceClient.getEmbeddings(List.of(query));
-        if (queryEmbeddings.isEmpty() || queryEmbeddings.get(0).isEmpty()) {
-            throw new RuntimeException("Failed to get embedding for the query.");
-        }
-        List<Double> queryEmbeddingList = queryEmbeddings.get(0);
-        float[] result = new float[queryEmbeddingList.size()];
-        for (int i = 0; i < queryEmbeddingList.size(); i++) {
-            result[i] = queryEmbeddingList.get(i).floatValue();
+        // 1️⃣ 生成向量
+        EmbeddingRes block = aiTool.embed(List.of(query)).block();
+        if (block == null || block.getData().isEmpty()) {
+            log.error("生成 embedding 失败，结果为空");
+            return Collections.emptyList();
         }
 
-        FloatVec userVector = new FloatVec(result);
-        StringBuilder filterExpr = new StringBuilder("blogId IN [");
-        // 修正了逗号和末尾括号的问题
-        String ids = blogIdList.stream()
-                .map(Object::toString)
-                .collect(Collectors.joining(", "));
-        filterExpr.append(ids);
-        filterExpr.append("]");
+        EmbeddingRes.EmbeddingData embeddingData = block.getData().get(0);
+        List<Double> embedding = embeddingData.getEmbedding();
+
+        // 2️⃣ 转换为 FloatVec（Milvus 要求 float 类型）
+        List<Float> vector = embedding.stream()
+                .map(Double::floatValue)
+                .collect(Collectors.toList());
+        FloatVec userVector = new FloatVec(vector);
+
+        // 3️⃣ 构造过滤条件
+        String filterExpr = "blogId in [" +
+                blogIdList.stream()
+                        .map(Object::toString)
+                        .collect(Collectors.joining(", ")) +
+                "]";
+
+        log.info("Milvus 向量搜索过滤条件: {}", filterExpr);
+
+        // 4️⃣ 加载 collection（确保已加载）
         milvusClient.loadCollection(LoadCollectionReq.builder()
                 .collectionName(collectionName)
                 .build());
 
+        // 5️⃣ 构造搜索请求
         SearchReq searchReq = SearchReq.builder()
                 .collectionName(collectionName)
                 .data(List.of(userVector))
                 .topK(5)
-                .filter(filterExpr.toString())
+                .filter(filterExpr)
                 .outputFields(List.of("blogId", "blogVector", "blogChunk"))
                 .build();
+
+        // 6️⃣ 执行搜索
         SearchResp searchResp = milvusClient.search(searchReq);
-        return searchResp.getSearchResults();
+
+        // 7️⃣ 返回结果
+        List<List<SearchResp.SearchResult>> searchResults = searchResp.getSearchResults();
+        log.info("Milvus 搜索完成，共返回 {} 组结果", searchResults.size());
+        return searchResults;
     }
+
 }

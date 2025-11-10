@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class ChatWithRagDto {
-    private String userId;
+    private Long userId;
     private String query;
 }

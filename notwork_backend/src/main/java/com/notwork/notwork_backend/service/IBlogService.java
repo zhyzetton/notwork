@@ -6,6 +6,7 @@ import com.notwork.notwork_backend.entity.dto.BlogSubmitDto;
 import com.notwork.notwork_backend.entity.pojo.Blog;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.notwork.notwork_backend.entity.vo.BlogSearchVo;
+import reactor.core.publisher.Flux;
 
 import java.io.IOException;
 
@@ -22,7 +23,5 @@ public interface IBlogService extends IService<Blog> {
     void insertBlogAndTag(BlogSubmitDto dto) throws IOException;
 
     IPage<BlogSearchVo> getBlogList(BlogSearchDto dto);
-
-    String chatWithRag(String userId, String query);
 
 }

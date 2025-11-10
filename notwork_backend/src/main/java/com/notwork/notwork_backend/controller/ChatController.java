@@ -1,18 +1,16 @@
 package com.notwork.notwork_backend.controller;
 
+import com.notwork.notwork_backend.service.ChatService;
+import com.notwork.notwork_backend.service.IBlogService;
+import com.notwork.notwork_backend.utils.AiTool;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
-import java.util.Map;
-
+import java.util.Objects;
 import org.springframework.ai.chat.client.ChatClient;
 
 @RestController
@@ -20,36 +18,24 @@ import org.springframework.ai.chat.client.ChatClient;
 public class ChatController {
 
     private final ChatClient chatClient;
-
-    // WebClient 自己创建或通过 Spring 注入都可以
-    private final WebClient webClient = WebClient.builder()
-            .baseUrl("https://dashscope.aliyuncs.com/compatible-mode/v1")
-            .defaultHeader("Authorization", "Bearer sk-69389daffede4c97add9e38a0fd7c091")
-            .build();
+    private final IBlogService blogService;
+    private final AiTool aiTool;
+    private final ChatService chatService;
 
     // 保留原来的 chat 接口
     @GetMapping("/chat")
-    public Flux<String> chat(@RequestParam String userId, @RequestParam String query, @RequestParam String aiType) {
-        return chatClient.prompt().user(query)
-                .advisors(advisorSpec -> advisorSpec.param("conversationId", userId))
-                .stream()
-                .content();
+    public Flux<String> chat(@RequestParam Long userId, @RequestParam String query, @RequestParam String aiType) {
+        if (Objects.equals(aiType, "chat")) {
+            return chatService.chat(userId, query);
+        } else {
+            return chatService.chatWithRag(userId, query);
+        }
     }
 
-    // 改写 /embed 接口，直接调用兼容模式 embedding
     @GetMapping("/embed")
-    public Mono<Map<String, Object>> embed(@RequestParam String text) {
-
-        Map<String, Object> payload = Map.of(
-                "model", "text-embedding-v4",
-                "input", List.of(text) // 兼容模式要求 input 是数组
-        );
-
-        return webClient.post()
-                .uri("/embeddings")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(BodyInserters.fromValue(payload))
-                .retrieve()
-                .bodyToMono(new org.springframework.core.ParameterizedTypeReference<Map<String, Object>>() {});
+    public List<float[]> embed(String text) {
+        return aiTool.embedding(List.of(text));
     }
+
+
 }

@@ -14,7 +14,7 @@ import java.util.List;
 
 public class MilvusOperation {
 
-    private String endpoint = "http://localhost:19530";
+    private String endpoint = "http://10.0.33.13:19530";
     private String token = "root:Milvus";
 
     public void createCollection() {
