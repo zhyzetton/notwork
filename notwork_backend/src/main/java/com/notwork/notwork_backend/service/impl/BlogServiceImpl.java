@@ -6,7 +6,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.notwork.notwork_backend.entity.dto.BlogSearchDto;
 import com.notwork.notwork_backend.entity.dto.BlogSubmitDto;
-import com.notwork.notwork_backend.entity.dto.EmbeddingRes;
 import com.notwork.notwork_backend.entity.pojo.Blog;
 import com.notwork.notwork_backend.entity.pojo.BlogTagRelation;
 import com.notwork.notwork_backend.entity.vo.BlogSearchVo;
@@ -64,11 +63,11 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         esTool.saveBlogToEs(blog, dto.getTagId());
 
         // 分块上传到向量数据库
-        // 步骤1: 构造 Document 对象
+        // 构造 Document 对象
         String content = blog.getContentMarkdown();
         Document document = new Document(UUID.randomUUID().toString(), content, Map.of("blogId", blog.getId()));
 
-        // 步骤2: 使用 TokenTextSplitter 分割
+        // 使用 TokenTextSplitter 分割
         TokenTextSplitter splitter = new TokenTextSplitter(
                 1200,  // 块大小 1200 token，适合 RAG 和 Tongyi 模型
                 400,   // 最小 400 字符，确保语义完整
@@ -78,16 +77,14 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         );
         List<Document> chunks = splitter.apply(List.of(document));
 
-        // 步骤3: 转换为 List<String> 以兼容原有逻辑
         List<String> splitList = chunks.stream()
                 .map(Document::getText)
                 .collect(Collectors.toList());
 
-        // 步骤4: 生成嵌入
-        EmbeddingRes block = aiTool.embed(splitList).block();
-        List<EmbeddingRes.EmbeddingData> embeddingData = block.getData();
+        List<float[]> embeddings = aiTool.embedding(splitList);
 
-        // 步骤5: 构造 JsonObject 并存储到 Milvus
+
+        // 构造 JsonObject 并存储到 Milvus
         List<JsonObject> data = new ArrayList<>();
         Gson gson = new Gson();
         for (int i = 0; i < splitList.size(); i++) {
@@ -95,7 +92,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
             jsonObject.addProperty("id", chunks.get(i).getId()); // 使用 Document 的 ID
             jsonObject.addProperty("blogId", blog.getId());
             jsonObject.addProperty("blogChunk", splitList.get(i));
-            jsonObject.add("blogVector", gson.toJsonTree(embeddingData.get(i).getEmbedding()));
+            jsonObject.add("blogVector", gson.toJsonTree(embeddings.get(i)));
             data.add(jsonObject);
         }
         milvusTool.insert(data);

@@ -5,7 +5,7 @@ import com.notwork.notwork_backend.entity.pojo.Blog;
 import com.notwork.notwork_backend.entity.pojo.BlogCollect;
 import com.notwork.notwork_backend.mapper.BlogCollectMapper;
 import com.notwork.notwork_backend.mapper.BlogMapper;
-import com.notwork.notwork_backend.service.ChatService;
+import com.notwork.notwork_backend.service.IChatService;
 import com.notwork.notwork_backend.utils.MilvusTool;
 import io.milvus.v2.service.vector.response.SearchResp;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class ChatServiceImpl implements ChatService {
+public class ChatServiceImpl implements IChatService {
 
     private final ChatClient chatClient;
     private final MilvusTool milvusTool;

@@ -1,6 +1,6 @@
 package com.notwork.notwork_backend.controller;
 
-import com.notwork.notwork_backend.service.ChatService;
+import com.notwork.notwork_backend.service.IChatService;
 import com.notwork.notwork_backend.service.IBlogService;
 import com.notwork.notwork_backend.utils.AiTool;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,7 @@ public class ChatController {
     private final ChatClient chatClient;
     private final IBlogService blogService;
     private final AiTool aiTool;
-    private final ChatService chatService;
+    private final IChatService chatService;
 
     // 保留原来的 chat 接口
     @GetMapping("/chat")
