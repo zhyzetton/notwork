@@ -6,6 +6,7 @@ import com.notwork.notwork_backend.entity.pojo.User;
 import com.notwork.notwork_backend.service.IUserService;
 import com.notwork.notwork_backend.utils.Result;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,11 +23,11 @@ import java.util.Objects;
  */
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/users")
 public class UserController {
     private final IUserService userService;
 
-    @RequestMapping("/login")
+    @PostMapping("/login")
     public Result login(@RequestBody LoginFormDto dto) {
         User user = userService.getOne(new LambdaQueryWrapper<User>().eq(User::getUsername, dto.getUsername()));
         if (user == null) return Result.error("用户名不存在");

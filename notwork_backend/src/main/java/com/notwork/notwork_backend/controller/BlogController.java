@@ -9,6 +9,8 @@ import com.notwork.notwork_backend.entity.vo.BlogSearchVo;
 import com.notwork.notwork_backend.service.IBlogService;
 import com.notwork.notwork_backend.utils.EsTool;
 import com.notwork.notwork_backend.utils.Result;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,19 +28,22 @@ import java.util.Map;
  */
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/blog")
+@RequestMapping("/blogs")
+@Tag(name = "博客管理接口")
 public class BlogController {
 
     private final IBlogService blogService;
     private final EsTool esTool;
 
     @GetMapping
+    @Operation(summary = "分页查询博客列表")
     public Result getBlogs(BlogSearchDto dto) {
         IPage<BlogSearchVo> blogList = blogService.getBlogList(dto);
         return Result.success(blogList);
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "根据id查询博客")
     public Result getBlog(@PathVariable Long id) {
         LambdaQueryWrapper<Blog> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Blog::getId, id);
@@ -47,12 +52,14 @@ public class BlogController {
     }
 
     @PostMapping
+    @Operation(summary = "新增博客")
     public Result insertBlog(@RequestBody BlogSubmitDto dto) throws IOException {
         blogService.insertBlogAndTag(dto);
         return Result.success();
     }
 
     @GetMapping("/es")
+    @Operation(summary = "通过关键字，es分页查询博客")
     public Result esSearchBlog(String keyword, Integer page, Integer pageSize) throws IOException {
         List<Map<String, Object>> maps = esTool.esSearchBlogWithHighlight(keyword, page, pageSize);
         return Result.success(maps);
