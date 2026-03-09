@@ -1,0 +1,106 @@
+.my-page {
+  padding-bottom: 48px;
+}
+
+.my-profile {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.my-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.my-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.my-avatar span {
+  color: #fff;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.my-username {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+}
+.my-role {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  margin: 2px 0 0;
+}
+
+.my-section-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 16px;
+}
+
+.my-loading {
+  display: flex;
+  justify-content: center;
+  padding: 48px 0;
+}
+
+.my-blog-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.my-blog-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 8px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.my-blog-item:hover {
+  background: var(--color-bg-secondary);
+}
+
+.my-blog-info h3 {
+  font-size: 15px;
+  font-weight: 500;
+  margin: 0 0 4px;
+}
+
+.my-blog-meta {
+  display: flex;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+}
+
+.my-blog-tag {
+  background: var(--color-tag-bg);
+  padding: 0 6px;
+  border-radius: 3px;
+}
+
+.my-blog-stats {
+  display: flex;
+  gap: 14px;
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+}
+.my-blog-stats span {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}

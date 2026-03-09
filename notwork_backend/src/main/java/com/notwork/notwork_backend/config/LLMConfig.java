@@ -23,7 +23,7 @@ public class LLMConfig {
     }
 
     @Bean
-    public ChatClient ChatClient(ChatModel chatModel, RedisChatMemoryRepository redisChatMemoryRepository, ChatMemoryRepository chatMemoryRepository) {
+    public ChatClient chatClient(ChatModel chatModel, RedisChatMemoryRepository redisChatMemoryRepository, ChatMemoryRepository chatMemoryRepository) {
         MessageWindowChatMemory windowChatMemory = MessageWindowChatMemory.builder()
                 .chatMemoryRepository(redisChatMemoryRepository)
                 .maxMessages(10)

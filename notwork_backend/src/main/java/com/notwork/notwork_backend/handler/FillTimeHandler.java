@@ -1,4 +1,4 @@
-package com.notwork.notwork_backend.handlers;
+package com.notwork.notwork_backend.handler;
 
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import org.apache.ibatis.reflection.MetaObject;
