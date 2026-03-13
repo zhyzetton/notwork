@@ -1,5 +1,6 @@
 package com.notwork.notwork_backend.controller;
 
+import com.notwork.notwork_backend.common.auth.LoginUser;
 import com.notwork.notwork_backend.common.result.Result;
 import com.notwork.notwork_backend.service.IBlogLikeService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,8 +20,8 @@ public class BlogLikeController {
     @PostMapping
     @Operation(summary = "点赞/取消点赞")
     public Result<Boolean> toggleLike(@PathVariable Long blogId, Authentication authentication) {
-        Long userId = (Long) authentication.getPrincipal();
-        boolean liked = blogLikeService.toggleLike(blogId, userId);
+        LoginUser user = (LoginUser) authentication.getPrincipal();
+        boolean liked = blogLikeService.toggleLike(blogId, user.getUserId());
         return Result.success(liked);
     }
 
