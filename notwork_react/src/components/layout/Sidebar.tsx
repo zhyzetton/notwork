@@ -43,7 +43,7 @@ const Sidebar = ({ currentPath, onNavigate }: SidebarProps) => {
               {user.avatarUrl ? (
                 <img src={user.avatarUrl} alt="" />
               ) : (
-                <span>{user.username.charAt(0).toUpperCase()}</span>
+                <span>{user.username?.charAt(0).toUpperCase()}</span>
               )}
             </div>
             <span className="sidebar-user-name">{user.username}</span>

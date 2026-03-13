@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Empty, Spin } from 'antd'
+import { Empty, Spin, Button } from 'antd'
 import { getBlogs } from '@/api'
 import { useAuth } from '@/contexts/AuthContext'
 import './index.css'
@@ -27,6 +27,11 @@ const My = () => {
       .then((res: any) => setBlogs(res.data?.records || []))
       .finally(() => setLoading(false))
   }, [user])
+
+  const handleEdit = (e: React.MouseEvent, blogId: number) => {
+    e.stopPropagation()
+    navigate(`/new?edit=${blogId}`)
+  }
 
   return (
     <div className="my-page">
@@ -65,10 +70,20 @@ const My = () => {
                   <span>{blog.createTime?.substring(0, 10)}</span>
                 </div>
               </div>
-              <div className="my-blog-stats">
-                <span><i className="ri-eye-line" /> {blog.viewCount || 0}</span>
-                <span><i className="ri-thumb-up-line" /> {blog.likeCount || 0}</span>
-                <span><i className="ri-bookmark-line" /> {blog.collectCount || 0}</span>
+              <div className="my-blog-actions">
+                <div className="my-blog-stats">
+                  <span><i className="ri-eye-line" /> {blog.viewCount || 0}</span>
+                  <span><i className="ri-thumb-up-line" /> {blog.likeCount || 0}</span>
+                  <span><i className="ri-bookmark-line" /> {blog.collectCount || 0}</span>
+                </div>
+                <Button 
+                  type="text" 
+                  size="small" 
+                  onClick={(e) => handleEdit(e, blog.id)}
+                  className="my-blog-edit"
+                >
+                  <i className="ri-edit-line" /> 编辑
+                </Button>
               </div>
             </div>
           ))}

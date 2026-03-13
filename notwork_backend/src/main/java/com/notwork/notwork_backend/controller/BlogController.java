@@ -54,6 +54,14 @@ public class BlogController {
         return Result.success();
     }
 
+    @PutMapping("/{id}")
+    @Operation(summary = "更新博客")
+    public Result<Void> updateBlog(@PathVariable Long id, @Valid @RequestBody BlogSubmitDto dto) throws IOException {
+        Long userId = SecurityUtils.getCurrentUserId();
+        blogService.updateBlogAndTag(id, dto, userId);
+        return Result.success();
+    }
+
     @GetMapping("/es")
     @Operation(summary = "通过关键字，es分页查询博客")
     public Result<List<Map<String, Object>>> esSearchBlog(

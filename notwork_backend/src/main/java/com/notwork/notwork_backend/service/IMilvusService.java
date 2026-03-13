@@ -9,5 +9,9 @@ public interface IMilvusService {
 
     void insert(List<JsonObject> data);
 
+    void deleteByBlogId(Long blogId);
+
+    void reinsert(Long blogId, String blogTitle, String content);
+
     List<List<SearchResp.SearchResult>> searchOnPersonal(List<Long> blogIdList, String query);
 }

@@ -1,13 +1,12 @@
 package com.notwork.notwork_backend.service.impl;
 
-import com.notwork.notwork_backend.common.constants.CommonConstants;
 import com.notwork.notwork_backend.service.IBlogCollectService;
 import com.notwork.notwork_backend.service.IBlogService;
 import com.notwork.notwork_backend.service.IChatService;
 import com.notwork.notwork_backend.service.IMilvusService;
 import io.milvus.v2.service.vector.response.SearchResp;
 import lombok.RequiredArgsConstructor;
-import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
@@ -19,16 +18,14 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ChatServiceImpl implements IChatService {
 
-    private final ChatClient chatClient;
+    private final ChatModel chatModel;
     private final IMilvusService milvusService;
     private final IBlogService blogService;
     private final IBlogCollectService blogCollectService;
 
     @Override
     public Flux<String> chat(Long userId, String query) {
-        return chatClient.prompt(query)
-                .advisors(advisorSpec -> advisorSpec.param(CommonConstants.CONVERSATION_ID, userId))
-                .stream().content();
+        return chatModel.stream(query);
     }
 
     @Override
@@ -58,10 +55,7 @@ public class ChatServiceImpl implements IChatService {
         2. 若基于上下文有答案，回答以"根据您的知识库（此处写blogId）："
         2. 若上下文没有相关内容，回答以"您的知识库中没有答案，大模型回答："。
         """, context, userQuery);
+        return chatModel.stream(promptText);
 
-        return chatClient.prompt(promptText)
-                .advisors(advisorSpec -> advisorSpec.param(CommonConstants.CONVERSATION_ID, userId))
-                .stream()
-                .content();
     }
 }

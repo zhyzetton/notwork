@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { Input, Button, Select, message } from 'antd'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import Vditor from 'vditor'
 import 'vditor/dist/index.css'
-import { createBlog, getBlogTags } from '@/api'
+import { createBlog, updateBlog, getBlogTags, getBlogById } from '@/api'
 import request from '@/api/request'
 import './index.css'
 
@@ -13,12 +13,24 @@ interface TagItem {
   tagName: string
 }
 
+interface BlogData {
+  id: number
+  title: string
+  contentMarkdown: string
+  contentHtml: string
+  tagId: number
+}
+
 const NewBlog = () => {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const editId = searchParams.get('edit')
+  
   const [title, setTitle] = useState('')
   const [tagId, setTagId] = useState<number | undefined>()
   const [tags, setTags] = useState<TagItem[]>([])
   const [submitting, setSubmitting] = useState(false)
+  const [loadingBlog, setLoadingBlog] = useState(!!editId)
 
   const editorRef = useRef<HTMLDivElement>(null)
   const vditorRef = useRef<Vditor | null>(null)
@@ -28,7 +40,20 @@ const NewBlog = () => {
   }, [])
 
   useEffect(() => {
-    if (!editorRef.current) return
+    if (editId) {
+      getBlogById(Number(editId)).then((res: any) => {
+        const blog: BlogData = res.data
+        setTitle(blog.title)
+        setTagId(blog.tagId)
+        if (vditorRef.current) {
+          vditorRef.current.setValue(blog.contentMarkdown || '')
+        }
+      }).finally(() => setLoadingBlog(false))
+    }
+  }, [editId])
+
+  useEffect(() => {
+    if (!editorRef.current || loadingBlog) return
 
     const vditor = new Vditor(editorRef.current, {
       height: 'auto',
@@ -62,6 +87,12 @@ const NewBlog = () => {
       },
       after: () => {
         vditorRef.current = vditor
+        if (editId && !loadingBlog) {
+          getBlogById(Number(editId)).then((res: any) => {
+            const blog: BlogData = res.data
+            vditor.setValue(blog.contentMarkdown || '')
+          })
+        }
       },
     })
 
@@ -69,7 +100,7 @@ const NewBlog = () => {
       vditor.destroy()
       vditorRef.current = null
     }
-  }, [])
+  }, [loadingBlog])
 
   const handleSubmit = async () => {
     const contentMarkdown = vditorRef.current?.getValue()?.trim() || ''
@@ -81,17 +112,23 @@ const NewBlog = () => {
 
     setSubmitting(true)
     try {
-      await createBlog({
+      const blogData = {
         title: title.trim(),
         contentMarkdown,
         contentHtml,
         tagId,
         status: 1,
-      })
-      message.success('发布成功')
-      navigate('/home')
+      }
+      if (editId) {
+        await updateBlog(Number(editId), blogData)
+        message.success('更新成功')
+      } else {
+        await createBlog(blogData)
+        message.success('发布成功')
+      }
+      navigate('/my')
     } catch {
-      message.error('发布失败')
+      message.error(editId ? '更新失败' : '发布失败')
     } finally {
       setSubmitting(false)
     }
@@ -112,7 +149,7 @@ const NewBlog = () => {
             options={tags.map((t) => ({ label: t.tagName, value: t.id }))}
           />
           <Button type="primary" onClick={handleSubmit} loading={submitting}>
-            发布
+            {editId ? '保存' : '发布'}
           </Button>
         </div>
       </div>

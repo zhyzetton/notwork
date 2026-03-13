@@ -6,6 +6,7 @@ import co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders;
 import co.elastic.clients.elasticsearch.core.IndexRequest;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.core.UpdateRequest;
 import co.elastic.clients.elasticsearch.core.search.Highlight;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import com.notwork.notwork_backend.common.constants.CommonConstants;
@@ -41,6 +42,26 @@ public class ElasticsearchServiceImpl implements IElasticsearchService {
         );
 
         elasticsearchClient.index(request);
+    }
+
+    @Override
+    public void updateBlogToEs(Blog blog, Long tagId) throws IOException {
+        Map<String, Object> blogData = new HashMap<>();
+        blogData.put("id", blog.getId());
+        blogData.put("userId", blog.getUserId());
+        blogData.put("title", blog.getTitle());
+        blogData.put("contentMarkdown", blog.getContentMarkdown());
+        blogData.put("tagId", tagId);
+        blogData.put("createTime", blog.getCreateTime() == null ? null : blog.getCreateTime().toString());
+        blogData.put("updateTime", blog.getUpdateTime() == null ? null : blog.getUpdateTime().toString());
+
+        UpdateRequest<Map<String, Object>, Map<String, Object>> request = UpdateRequest.of(r -> r
+                .index(CommonConstants.ES_BLOG_INDEX)
+                .id(String.valueOf(blog.getId()))
+                .doc(blogData)
+        );
+
+        elasticsearchClient.update(request, Map.class);
     }
 
     @Override

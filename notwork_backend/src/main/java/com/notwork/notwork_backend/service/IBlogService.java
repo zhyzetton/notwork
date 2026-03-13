@@ -14,6 +14,8 @@ public interface IBlogService extends IService<Blog> {
 
     void insertBlogAndTag(BlogSubmitDto dto, Long userId) throws IOException;
 
+    void updateBlogAndTag(Long id, BlogSubmitDto dto, Long userId) throws IOException;
+
     IPage<BlogSearchVo> getBlogList(BlogSearchDto dto);
 
     List<Long> getBlogIdsByUserId(Long userId);

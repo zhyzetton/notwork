@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Input, Button, message, Radio } from 'antd'
+import ReactMarkdown from 'react-markdown'
 import './index.css'
 
 interface ChatMessage {
@@ -29,19 +30,35 @@ const Chat = () => {
     try {
       const token = localStorage.getItem('token')
       const res = await fetch(
-        `/api/chat?query=${encodeURIComponent(query)}&aiType=${aiType}`,
-        { headers: token ? { Authorization: `Bearer ${token}` } : {} },
+        `http://localhost:8080/api/chat?query=${encodeURIComponent(query)}&aiType=${aiType}`,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: 'text/event-stream',
+          },
+        },
       )
 
       if (res.status === 401) {
-        window.dispatchEvent(new Event('auth:logout'))
-        window.dispatchEvent(new Event('auth:showLogin'))
-        throw new Error('登录已过期，请重新登录')
+        message.error('登录已过期，请重新登录')
+        setLoading(false)
+        return
       }
-      if (!res.ok) throw new Error('请求失败')
+      if (res.status === 403) {
+        message.error('没有权限')
+        setLoading(false)
+        return
+      }
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}))
+        message.error(errorData.message || '请求失败')
+        return
+      }
 
       const reader = res.body?.getReader()
       const decoder = new TextDecoder()
+      let buffer = ''
 
       setMessages((prev) => [...prev, { role: 'assistant', content: '' }])
 
@@ -49,29 +66,34 @@ const Chat = () => {
         while (true) {
           const { done, value } = await reader.read()
           if (done) break
-          const text = decoder.decode(value, { stream: true })
-          // Parse SSE format: extract content from "data:" lines
-          const lines = text.split('\n')
-          let chunk = ''
+
+          buffer += decoder.decode(value, { stream: true })
+
+          const lines = buffer.split('\n')
+          buffer = lines.pop() || ''
+
           for (const line of lines) {
             if (line.startsWith('data:')) {
-              chunk += line.substring(5)
-            }
-          }
-          if (chunk) {
-            setMessages((prev) => {
-              const updated = [...prev]
-              updated[updated.length - 1] = {
-                ...updated[updated.length - 1],
-                content: updated[updated.length - 1].content + chunk,
+              const data = line.slice(5).trim()
+              if (data === '[DONE]') {
+                return
               }
-              return updated
-            })
+              if (data) {
+                setMessages((prev) => {
+                  const updated = [...prev]
+                  updated[updated.length - 1] = {
+                    ...updated[updated.length - 1],
+                    content: updated[updated.length - 1].content + data,
+                  }
+                  return updated
+                })
+              }
+            }
           }
         }
       }
-    } catch {
-      message.error('对话失败，请重试')
+    } catch (err) {
+      message.error('网络错误，请检查连接')
     } finally {
       setLoading(false)
     }
@@ -101,12 +123,20 @@ const Chat = () => {
                   <i className="ri-robot-2-line" />
                 )}
               </div>
-              <div className="bubble-content">{msg.content}</div>
+              <div className="bubble-content">
+                {msg.role === 'assistant' ? (
+                  <ReactMarkdown>{msg.content}</ReactMarkdown>
+                ) : (
+                  msg.content
+                )}
+              </div>
             </div>
           ))}
           {loading && (
             <div className="chat-typing">
-              <span /><span /><span />
+              <span />
+              <span />
+              <span />
             </div>
           )}
           <div ref={bottomRef} />
@@ -114,7 +144,11 @@ const Chat = () => {
 
         <div className="chat-input-area">
           <div className="chat-mode">
-            <Radio.Group value={aiType} onChange={(e) => setAiType(e.target.value)} size="small">
+            <Radio.Group
+              value={aiType}
+              onChange={(e) => setAiType(e.target.value)}
+              size="small"
+            >
               <Radio.Button value="chat">普通对话</Radio.Button>
               <Radio.Button value="rag">知识库问答</Radio.Button>
             </Radio.Group>

@@ -7,58 +7,81 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 @Component
 public class JwtUtils {
 
-    @Value("${jwt.secret:notwork-default-secret-key-must-be-at-least-256-bits-long}")
+    @Value("${jwt.secret}")
     private String secret;
 
-    @Value("${jwt.expiration:86400000}")
-    private long expiration;
+    @Value("${jwt.expiration}")
+    private long expire;
 
-    private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+
+    private SecretKey getKey() {
+        return Keys.hmacShaKeyFor(secret.getBytes());
     }
 
-    public String generateToken(Long userId, String username) {
-        Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + expiration);
+
+    /**
+     * 生成 token（携带 userId 和 role）
+     */
+    public String generateToken(Long userId, String role) {
 
         return Jwts.builder()
-                .subject(String.valueOf(userId))
-                .claim("username", username)
-                .issuedAt(now)
-                .expiration(expiryDate)
-                .signWith(getSigningKey())
+                .subject(userId.toString())
+                .claim("role", role)
+                .expiration(new Date(System.currentTimeMillis() + expire))
+                .signWith(getKey())
                 .compact();
     }
 
-    public Claims parseToken(String token) {
+    /**
+     * 解析 token
+     */
+    private Claims parseToken(String token) {
+
         return Jwts.parser()
-                .verifyWith(getSigningKey())
+                .verifyWith(getKey())
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
     }
 
-    public Long getUserIdFromToken(String token) {
-        Claims claims = parseToken(token);
-        return Long.parseLong(claims.getSubject());
+    /**
+     * 获取用户ID
+     */
+    public Long getUserId(String token) {
+        return Long.parseLong(parseToken(token).getSubject());
     }
 
-    public String getUsernameFromToken(String token) {
-        Claims claims = parseToken(token);
-        return claims.get("username", String.class);
+    /**
+     * 获取用户角色
+     */
+    public String getRole(String token) {
+        return parseToken(token).get("role", String.class);
     }
 
-    public boolean validateToken(String token) {
+    /**
+     * 判断 token 是否过期
+     */
+    public boolean isExpired(String token) {
+        Date expiration = parseToken(token).getExpiration();
+        return expiration.before(new Date());
+    }
+
+    /**
+     * 校验 token
+     */
+    public boolean validate(String token) {
+
         try {
-            parseToken(token);
-            return true;
+
+            return !isExpired(token);
+
         } catch (Exception e) {
+
             return false;
         }
     }

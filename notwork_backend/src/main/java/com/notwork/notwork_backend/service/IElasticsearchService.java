@@ -10,5 +10,7 @@ public interface IElasticsearchService {
 
     void saveBlogToEs(Blog blog, Long tagId) throws IOException;
 
+    void updateBlogToEs(Blog blog, Long tagId) throws IOException;
+
     List<Map<String, Object>> esSearchBlogWithHighlight(String keyword, int page, int size) throws IOException;
 }

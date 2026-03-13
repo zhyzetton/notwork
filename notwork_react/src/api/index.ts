@@ -26,6 +26,15 @@ export const createBlog = (data: {
   tagId: number
 }) => request.post('/blogs', data)
 
+export const updateBlog = (id: number, data: {
+  title: string
+  contentMarkdown: string
+  contentHtml?: string
+  coverUrl?: string
+  status?: number
+  tagId: number
+}) => request.put(`/blogs/${id}`, data)
+
 export const esSearchBlogs = (keyword: string, page = 1, pageSize = 10) =>
   request.get('/blogs/es', { params: { keyword, page, pageSize } })
 

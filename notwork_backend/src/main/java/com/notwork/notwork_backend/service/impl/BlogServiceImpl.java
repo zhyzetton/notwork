@@ -22,10 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -55,7 +52,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         elasticsearchService.saveBlogToEs(blog, dto.getTagId());
 
         String content = blog.getContentMarkdown();
-        Document document = new Document(UUID.randomUUID().toString(), content, Map.of("blogId", blog.getId()));
+        Document document = new Document(UUID.randomUUID().toString(), content, Map.of("blogId", blog.getId(), "blogTitle", blog.getTitle()));
         List<Document> chunks = textSplitter.apply(List.of(document));
 
         List<String> splitList = chunks.stream()
@@ -70,6 +67,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
             JsonObject jsonObject = new JsonObject();
             jsonObject.addProperty("id", chunks.get(i).getId());
             jsonObject.addProperty("blogId", blog.getId());
+            jsonObject.addProperty("blogTitle", blog.getTitle());
             jsonObject.addProperty("blogChunk", splitList.get(i));
             jsonObject.add("blogVector", gson.toJsonTree(embeddings.get(i)));
             data.add(jsonObject);
@@ -81,6 +79,34 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
     public IPage<BlogSearchVo> getBlogList(BlogSearchDto dto) {
         Page<Object> page = new Page<>(dto.getPageNum(), dto.getPageSize());
         return blogMapper.searchBlog(page, dto);
+    }
+
+    @Override
+    @Transactional
+    public void updateBlogAndTag(Long id, BlogSubmitDto dto, Long userId) throws IOException {
+        Blog blog = getById(id);
+        if (blog == null) {
+            throw new RuntimeException("博客不存在");
+        }
+        if (!blog.getUserId().equals(userId)) {
+            throw new RuntimeException("无权限修改此博客");
+        }
+
+        BeanUtils.copyProperties(dto, blog, "id", "userId", "createTime");
+        updateById(blog);
+
+        // BlogTagRelation 是无独立主键的关联表，不支持 updateById
+        // 改为：先删除该博客的旧关联，再插入新关联
+        blogTagRelationService.remove(new LambdaQueryWrapper<BlogTagRelation>()
+                .eq(BlogTagRelation::getBlogId, id));
+        BlogTagRelation newRelation = new BlogTagRelation();
+        newRelation.setBlogId(id);
+        newRelation.setTagId(dto.getTagId());
+        blogTagRelationService.save(newRelation);
+
+        elasticsearchService.updateBlogToEs(blog, dto.getTagId());
+
+        milvusService.reinsert(blog.getId(), blog.getTitle(), blog.getContentMarkdown());
     }
 
     @Override

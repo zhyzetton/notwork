@@ -104,3 +104,17 @@
   align-items: center;
   gap: 3px;
 }
+
+.my-blog-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.my-blog-edit {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+.my-blog-edit:hover {
+  color: var(--color-accent);
+}
