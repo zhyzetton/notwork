@@ -28,7 +28,7 @@ public class BlogLikeController {
     @GetMapping("/status")
     @Operation(summary = "查询当前用户是否点赞")
     public Result<Boolean> hasLiked(@PathVariable Long blogId, Authentication authentication) {
-        Long userId = (Long) authentication.getPrincipal();
-        return Result.success(blogLikeService.hasLiked(blogId, userId));
+        LoginUser user = (LoginUser) authentication.getPrincipal();
+        return Result.success(blogLikeService.hasLiked(blogId, user.getUserId()));
     }
 }

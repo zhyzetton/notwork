@@ -1,5 +1,6 @@
 package com.notwork.notwork_backend.controller;
 
+import com.notwork.notwork_backend.common.auth.LoginUser;
 import com.notwork.notwork_backend.common.result.Result;
 import com.notwork.notwork_backend.service.IBlogCollectService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,15 +20,15 @@ public class BlogCollectController {
     @PostMapping
     @Operation(summary = "收藏/取消收藏")
     public Result<Boolean> toggleCollect(@PathVariable Long blogId, Authentication authentication) {
-        Long userId = (Long) authentication.getPrincipal();
-        boolean collected = blogCollectService.toggleCollect(blogId, userId);
+        LoginUser user = (LoginUser) authentication.getPrincipal();
+        boolean collected = blogCollectService.toggleCollect(blogId, user.getUserId());
         return Result.success(collected);
     }
 
     @GetMapping("/status")
     @Operation(summary = "查询当前用户是否收藏")
     public Result<Boolean> hasCollected(@PathVariable Long blogId, Authentication authentication) {
-        Long userId = (Long) authentication.getPrincipal();
-        return Result.success(blogCollectService.hasCollected(blogId, userId));
+        LoginUser user = (LoginUser) authentication.getPrincipal();
+        return Result.success(blogCollectService.hasCollected(blogId, user.getUserId()));
     }
 }

@@ -48,7 +48,7 @@ public class BlogController {
 
     @PostMapping
     @Operation(summary = "新增博客")
-    public Result<Void> insertBlog(@Valid @RequestBody BlogSubmitDto dto) throws IOException {
+    public Result<Void> insertBlog(@Valid @RequestBody BlogSubmitDto dto) {
         Long userId = SecurityUtils.getCurrentUserId();
         blogService.insertBlogAndTag(dto, userId);
         return Result.success();
@@ -56,7 +56,7 @@ public class BlogController {
 
     @PutMapping("/{id}")
     @Operation(summary = "更新博客")
-    public Result<Void> updateBlog(@PathVariable Long id, @Valid @RequestBody BlogSubmitDto dto) throws IOException {
+    public Result<Void> updateBlog(@PathVariable Long id, @Valid @RequestBody BlogSubmitDto dto) {
         Long userId = SecurityUtils.getCurrentUserId();
         blogService.updateBlogAndTag(id, dto, userId);
         return Result.success();

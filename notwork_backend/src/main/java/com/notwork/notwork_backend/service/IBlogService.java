@@ -7,14 +7,13 @@ import com.notwork.notwork_backend.entity.pojo.Blog;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.notwork.notwork_backend.entity.vo.BlogSearchVo;
 
-import java.io.IOException;
 import java.util.List;
 
 public interface IBlogService extends IService<Blog> {
 
-    void insertBlogAndTag(BlogSubmitDto dto, Long userId) throws IOException;
+    void insertBlogAndTag(BlogSubmitDto dto, Long userId);
 
-    void updateBlogAndTag(Long id, BlogSubmitDto dto, Long userId) throws IOException;
+    void updateBlogAndTag(Long id, BlogSubmitDto dto, Long userId);
 
     IPage<BlogSearchVo> getBlogList(BlogSearchDto dto);
 

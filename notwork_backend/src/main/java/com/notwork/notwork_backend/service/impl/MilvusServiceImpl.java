@@ -11,6 +11,7 @@ import io.milvus.v2.service.vector.request.InsertReq;
 import io.milvus.v2.service.vector.request.SearchReq;
 import io.milvus.v2.service.vector.request.data.FloatVec;
 import io.milvus.v2.service.vector.response.SearchResp;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
@@ -28,6 +29,15 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Service
 public class MilvusServiceImpl implements IMilvusService {
+
+    @PostConstruct
+    public void loadCollection() {
+        milvusClient.loadCollection(
+                LoadCollectionReq.builder()
+                        .collectionName(collectionName)
+                        .build()
+        );
+    }
 
     @Value("${spring.ai.vectorstore.milvus.collection-name}")
     private String collectionName;
@@ -60,7 +70,7 @@ public class MilvusServiceImpl implements IMilvusService {
     public void reinsert(Long blogId, String blogTitle, String content) {
         deleteByBlogId(blogId);
 
-        Document document = new Document(UUID.randomUUID().toString(), content, Map.of("blogId", blogId, "blogTitle", blogTitle));
+        Document document = new Document(blogId.toString(), content, Map.of("blogId", blogId, "blogTitle", blogTitle));
         List<Document> chunks = textSplitter.apply(List.of(document));
 
         List<String> splitList = chunks.stream()
@@ -73,7 +83,7 @@ public class MilvusServiceImpl implements IMilvusService {
         Gson gson = new Gson();
         for (int i = 0; i < splitList.size(); i++) {
             JsonObject jsonObject = new JsonObject();
-            jsonObject.addProperty("id", chunks.get(i).getId());
+            jsonObject.addProperty("id", UUID.randomUUID().toString());
             jsonObject.addProperty("blogId", blogId);
             jsonObject.addProperty("blogTitle", blogTitle);
             jsonObject.addProperty("blogChunk", splitList.get(i));
@@ -94,16 +104,13 @@ public class MilvusServiceImpl implements IMilvusService {
                         .map(Object::toString)
                         .collect(Collectors.joining(", ")) +
                 "]";
-        milvusClient.loadCollection(LoadCollectionReq.builder()
-                .collectionName(collectionName)
-                .build());
 
         SearchReq searchReq = SearchReq.builder()
                 .collectionName(collectionName)
                 .data(List.of(userVector))
                 .topK(5)
                 .filter(filterExpr)
-                .outputFields(List.of("blogId", "blogVector", "blogChunk"))
+                .outputFields(List.of("blogId", "blogTitle", "blogChunk"))
                 .build();
         SearchResp searchResp = milvusClient.search(searchReq);
         List<List<SearchResp.SearchResult>> searchResults = searchResp.getSearchResults();
