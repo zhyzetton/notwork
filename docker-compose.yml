@@ -1,0 +1,277 @@
+version: '3.8'
+
+services:
+  # ============================================================
+  # MySQL 数据库
+  # ============================================================
+  mysql:
+    image: mysql:8.0
+    container_name: notwork-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: notwork2024
+      MYSQL_DATABASE: notwork
+      TZ: Asia/Shanghai
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./notwork_backend/sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-pnotwork2024"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - notwork-network
+
+  # ============================================================
+  # Redis 缓存
+  # ============================================================
+  redis:
+    image: redis:7-alpine
+    container_name: notwork-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - notwork-network
+
+  # ============================================================
+  # RabbitMQ 消息队列
+  # ============================================================
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: notwork-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - notwork-network
+
+  # ============================================================
+  # MinIO 对象存储
+  # ============================================================
+  minio:
+    image: minio/minio:latest
+    container_name: notwork-minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - notwork-network
+
+  # ============================================================
+  # Milvus 向量数据库
+  # ============================================================
+  etcd:
+    image: quay.io/coreos/etcd:v3.5.5
+    container_name: notwork-etcd
+    environment:
+      - ETCD_AUTO_COMPACTION_MODE=revision
+      - ETCD_AUTO_COMPACTION_RETENTION=1000
+      - ETCD_QUOTA_BACKEND_BYTES=4294967296
+      - ETCD_SNAPSHOT_COUNT=50000
+    volumes:
+      - etcd_data:/etcd
+    command: etcd -advertise-client-urls=http://127.0.0.1:2379 -listen-client-urls http://0.0.0.0:2379 --data-dir /etcd
+    networks:
+      - notwork-network
+
+  minio-storage:
+    image: minio/minio:latest
+    container_name: notwork-minio-storage
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio_storage_data:/data
+    command: server /data --console-address ":9002"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - notwork-network
+
+  milvus:
+    image: milvusdb/milvus:v2.3.3
+    container_name: notwork-milvus
+    restart: unless-stopped
+    depends_on:
+      - etcd
+      - minio-storage
+    environment:
+      ETCD_ENDPOINTS: etcd:2379
+      MINIO_ADDRESS: minio-storage:9000
+    ports:
+      - "19530:19530"
+      - "9091:9091"
+    volumes:
+      - milvus_data:/var/lib/milvus
+    command: milvus run standalone
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
+      interval: 30s
+      start_period: 90s
+      timeout: 20s
+      retries: 5
+    networks:
+      - notwork-network
+
+  # ============================================================
+  # Elasticsearch 搜索引擎
+  # ============================================================
+  elasticsearch:
+    image: elasticsearch:8.11.0
+    container_name: notwork-elasticsearch
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - TZ=Asia/Shanghai
+    ports:
+      - "9200:9200"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q '\"status\":\"green\"\\|\"status\":\"yellow\"'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - notwork-network
+
+  # ============================================================
+  # Kibana (可选 - Elasticsearch 可视化)
+  # ============================================================
+  kibana:
+    image: kibana:8.11.0
+    container_name: notwork-kibana
+    restart: unless-stopped
+    depends_on:
+      - elasticsearch
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    networks:
+      - notwork-network
+
+  # ============================================================
+  # Spring Boot 后端
+  # ============================================================
+  notwork-backend:
+    build:
+      context: ./notwork_backend
+      dockerfile: Dockerfile
+    container_name: notwork-backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      milvus:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/notwork?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: notwork2024
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MILVUS_HOST: milvus
+      MILVUS_PORT: 19530
+      ES_HOST: elasticsearch
+      ES_PORT: 9200
+      SPRING_AI_OPENAI_API_KEY: ${SPRING_AI_OPENAI_API_KEY}
+      SPRING_AI_OPENAI_BASE_URL: ${SPRING_AI_OPENAI_BASE_URL:-https://api.openai.com}
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - notwork-network
+
+  # ============================================================
+  # React 前端
+  # ============================================================
+  notwork-frontend:
+    build:
+      context: ./notwork_react
+      dockerfile: Dockerfile
+    container_name: notwork-frontend
+    restart: unless-stopped
+    depends_on:
+      - notwork-backend
+    ports:
+      - "3000:80"
+    networks:
+      - notwork-network
+
+# ============================================================
+# 网络和存储卷
+# ============================================================
+networks:
+  notwork-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  redis_data:
+  rabbitmq_data:
+  minio_data:
+  minio_storage_data:
+  milvus_data:
+  etcd_data:
+  es_data:
